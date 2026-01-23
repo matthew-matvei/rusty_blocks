@@ -1,0 +1,26 @@
+---
+source: tests/game_board_tests.rs
+assertion_line: 11
+expression: renderer.get_snapshot()
+---
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|__________|
