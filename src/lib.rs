@@ -8,14 +8,24 @@ impl<'a, T: RendersGameBoard> GameBoard<'a, T> {
     pub fn render(&self) -> () {
         let mut instructions = Vec::new();
         for _row in 0..self.height {
-            instructions.push(RenderInstruction::Character('|'));
-            for _col in 0..self.width {
-                instructions.push(RenderInstruction::Character(' '));
-            }
-            instructions.push(RenderInstruction::Character('|'));
-            instructions.push(RenderInstruction::NextLine);
+            self.instructions_for_row(&mut instructions);
         }
 
+        self.instructions_for_bottom(&mut instructions);
+
+        self.renderer.render(instructions);
+    }
+
+    fn instructions_for_row(&self, instructions: &mut Vec<RenderInstruction>) {
+        instructions.push(RenderInstruction::Character('|'));
+        for _col in 0..self.width {
+            instructions.push(RenderInstruction::Character(' '));
+        }
+        instructions.push(RenderInstruction::Character('|'));
+        instructions.push(RenderInstruction::NextLine);
+    }
+
+    fn instructions_for_bottom(&self, instructions: &mut Vec<RenderInstruction>) {
         instructions.push(RenderInstruction::Character('|'));
 
         for _col in 0..self.width {
@@ -23,8 +33,6 @@ impl<'a, T: RendersGameBoard> GameBoard<'a, T> {
         }
 
         instructions.push(RenderInstruction::Character('|'));
-
-        self.renderer.render(instructions);
     }
 
     pub fn new(width: u8, height: u8, renderer: &'a T) -> GameBoard<'a, T> {
