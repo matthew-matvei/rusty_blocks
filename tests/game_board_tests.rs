@@ -5,9 +5,48 @@ use rusty_blocks::*;
 #[test]
 fn it_renders_an_empty_board_after_initialising() {
     let renderer = TestRenderer::new();
-    GameBoard::new(10, 20, &renderer).render();
+    new_game_board(&renderer).render();
 
     insta::assert_snapshot!(renderer.get_snapshot());
+}
+
+#[test]
+fn it_moves_a_block_downwards_as_the_game_ticks() {
+    let renderer = TestRenderer::new();
+    let mut game_board = new_game_board(&renderer);
+
+    game_board.tick();
+    game_board.tick();
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after 2 ticks", renderer.get_snapshot());
+
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after 6 ticks", renderer.get_snapshot());
+
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after 14 ticks", renderer.get_snapshot());
+}
+
+fn new_game_board<'a>(renderer: &'a TestRenderer) -> GameBoard<'a, TestRenderer> {
+    GameBoard::new(10, 20, renderer)
 }
 
 #[derive(Clone)]
@@ -29,6 +68,8 @@ impl TestRenderer {
 
 impl RendersGameBoard for TestRenderer {
     fn render(&self, instructions: Vec<rusty_blocks::RenderInstruction>) {
+        self.snapshot.borrow_mut().clear();
+
         for instruction in &instructions {
             match instruction {
                 RenderInstruction::Character(character) => {
