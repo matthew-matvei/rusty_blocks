@@ -35,7 +35,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
                     y: column_index as i8,
                 })
             }) {
-                instructions.push(RenderInstruction::Character('X'));
+                instructions.push(RenderInstruction::Character('+'));
             } else {
                 instructions.push(RenderInstruction::Character(' '));
             }

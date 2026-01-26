@@ -5,8 +5,8 @@ expression: renderer.get_snapshot()
 |          |
 |          |
 |          |
-|    XX    |
-|    XX    |
+|    ++    |
+|    ++    |
 |          |
 |          |
 |          |
