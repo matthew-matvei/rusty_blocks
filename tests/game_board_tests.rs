@@ -45,6 +45,38 @@ fn it_moves_a_block_downwards_as_the_game_ticks() {
     insta::assert_snapshot!("board after 14 ticks", renderer.get_snapshot());
 }
 
+#[test]
+fn it_loads_a_next_block_once_the_first_reaches_the_bottom() {
+    let renderer = TestRenderer::new();
+    let mut game_board = GameBoard::new(&renderer);
+
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+    game_board.tick();
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after 22 ticks", renderer.get_snapshot());
+}
+
 #[derive(Clone)]
 struct TestRenderer {
     snapshot: RefCell<String>,
