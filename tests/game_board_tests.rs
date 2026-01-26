@@ -5,8 +5,8 @@ use rusty_blocks::*;
 #[test]
 fn it_renders_an_empty_board_after_initialising() {
     let renderer = TestRenderer::new();
-    let block_generator = TestBlockBuilder {};
-    GameBoard::new(&renderer, &block_generator).render();
+    let mut block_generator = TestBlockBuilder::new();
+    GameBoard::new(&renderer, &mut block_generator).render();
 
     insta::assert_snapshot!(renderer.get_snapshot());
 }
@@ -14,8 +14,8 @@ fn it_renders_an_empty_board_after_initialising() {
 #[test]
 fn it_moves_a_block_downwards_as_the_game_ticks() {
     let renderer = TestRenderer::new();
-    let block_generator = TestBlockBuilder {};
-    let mut game_board = GameBoard::new(&renderer, &block_generator);
+    let mut block_generator = TestBlockBuilder::new();
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
 
     tick_game_board_times(2, &mut game_board);
 
@@ -39,8 +39,8 @@ fn it_moves_a_block_downwards_as_the_game_ticks() {
 #[test]
 fn it_loads_a_next_block_once_the_first_reaches_the_bottom() {
     let renderer = TestRenderer::new();
-    let block_generator = TestBlockBuilder {};
-    let mut game_board = GameBoard::new(&renderer, &block_generator);
+    let mut block_generator = TestBlockBuilder::new();
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
 
     tick_game_board_times(21, &mut game_board);
 
@@ -96,11 +96,30 @@ impl RendersGameBoard for TestRenderer {
     }
 }
 
-struct TestBlockBuilder {}
+struct TestBlockBuilder {
+    sequence_of_block_types: [BlockType; 2],
+    position_in_sequence: usize,
+}
+
+impl TestBlockBuilder {
+    fn new() -> TestBlockBuilder {
+        TestBlockBuilder {
+            sequence_of_block_types: [BlockType::Square, BlockType::Line],
+            position_in_sequence: 0,
+        }
+    }
+}
 
 impl BuildsBlocks for TestBlockBuilder {
-    fn build(&self) -> Block {
+    fn build(&mut self) -> Block {
+        let next_block_type = self.sequence_of_block_types[self.position_in_sequence];
+        if self.position_in_sequence == self.sequence_of_block_types.len() - 1 {
+            self.position_in_sequence = 0;
+        } else {
+            self.position_in_sequence += 1;
+        }
+
         // TODO: Block itself shouldn't need to know where it is in the Game Board
-        Block::new(10)
+        Block::new(10, next_block_type)
     }
 }
