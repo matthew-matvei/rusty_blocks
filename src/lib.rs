@@ -115,7 +115,7 @@ impl Block {
         blah.0 && blah.1
     }
 
-    fn reached_row(&self, row_index: i8) -> bool {
+    fn reached_row(self, row_index: i8) -> bool {
         row_index == self.position_in_grid.x || row_index == self.position_in_grid.x + 1
     }
 }
