@@ -43,13 +43,9 @@ impl<'a, T: RendersGameBoard> GameBoard<'a, T> {
     }
 
     fn instructions_for_bottom(&self, instructions: &mut Vec<RenderInstruction>) {
-        instructions.push(RenderInstruction::Character('|'));
-
-        for _col in 0..self.width {
-            instructions.push(RenderInstruction::Character('_'));
+        for _col in 0..self.width + 2 {
+            instructions.push(RenderInstruction::Character('-'));
         }
-
-        instructions.push(RenderInstruction::Character('|'));
     }
 
     pub fn new(renderer: &'a T) -> GameBoard<'a, T> {
