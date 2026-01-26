@@ -5,7 +5,8 @@ use rusty_blocks::*;
 #[test]
 fn it_renders_an_empty_board_after_initialising() {
     let renderer = TestRenderer::new();
-    GameBoard::new(&renderer).render();
+    let block_generator = TestBlockBuilder {};
+    GameBoard::new(&renderer, &block_generator).render();
 
     insta::assert_snapshot!(renderer.get_snapshot());
 }
@@ -13,7 +14,8 @@ fn it_renders_an_empty_board_after_initialising() {
 #[test]
 fn it_moves_a_block_downwards_as_the_game_ticks() {
     let renderer = TestRenderer::new();
-    let mut game_board = GameBoard::new(&renderer);
+    let block_generator = TestBlockBuilder {};
+    let mut game_board = GameBoard::new(&renderer, &block_generator);
 
     tick_game_board_times(2, &mut game_board);
 
@@ -37,16 +39,26 @@ fn it_moves_a_block_downwards_as_the_game_ticks() {
 #[test]
 fn it_loads_a_next_block_once_the_first_reaches_the_bottom() {
     let renderer = TestRenderer::new();
-    let mut game_board = GameBoard::new(&renderer);
+    let block_generator = TestBlockBuilder {};
+    let mut game_board = GameBoard::new(&renderer, &block_generator);
 
     tick_game_board_times(21, &mut game_board);
 
     game_board.render();
 
     insta::assert_snapshot!("board after 21 ticks", renderer.get_snapshot());
+
+    tick_game_board_times(4, &mut game_board);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after 25 ticks", renderer.get_snapshot());
 }
 
-fn tick_game_board_times<T: RendersGameBoard>(number_of_times: u8, game_board: &mut GameBoard<T>) {
+fn tick_game_board_times<T: RendersGameBoard, V: BuildsBlocks>(
+    number_of_times: u8,
+    game_board: &mut GameBoard<T, V>,
+) {
     for _ in 0..number_of_times {
         game_board.tick();
     }
@@ -81,5 +93,14 @@ impl RendersGameBoard for TestRenderer {
                 RenderInstruction::NextLine => self.snapshot.borrow_mut().push('\n'),
             }
         }
+    }
+}
+
+struct TestBlockBuilder {}
+
+impl BuildsBlocks for TestBlockBuilder {
+    fn build(&self) -> Block {
+        // TODO: Block itself shouldn't need to know where it is in the Game Board
+        Block::new(10)
     }
 }
