@@ -21,7 +21,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     pub fn tick(&mut self) -> () {
         self.active_block = Some(
             self.active_block
-                .take_if(|block| !block.is_at_row((self.height - 1) as i8))
+                .take_if(|block| !block.reached_row((self.height - 1) as i8))
                 .map_or_else(|| self.block_builder.build(), |block| block.move_down()),
         );
     }
@@ -115,7 +115,7 @@ impl Block {
         blah.0 && blah.1
     }
 
-    fn is_at_row(&self, row_index: i8) -> bool {
+    fn reached_row(&self, row_index: i8) -> bool {
         row_index == self.position_in_grid.x || row_index == self.position_in_grid.x + 1
     }
 }
