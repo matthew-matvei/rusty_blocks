@@ -52,10 +52,10 @@ impl<'a, T: RendersGameBoard> GameBoard<'a, T> {
         instructions.push(RenderInstruction::Character('|'));
     }
 
-    pub fn new(width: u8, height: u8, renderer: &'a T) -> GameBoard<'a, T> {
+    pub fn new(renderer: &'a T) -> GameBoard<'a, T> {
         GameBoard {
-            width,
-            height,
+            width: 10,
+            height: 20,
             active_block: None,
             renderer,
         }
