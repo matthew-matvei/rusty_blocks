@@ -74,7 +74,13 @@ fn it_loads_a_next_block_once_the_first_reaches_the_bottom() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 22 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 21 ticks", renderer.get_snapshot());
+}
+
+fn tick_game_board_times<T: RendersGameBoard>(number_of_times: u8, game_board: &mut GameBoard<T>) {
+    for _ in 0..number_of_times {
+        game_board.tick();
+    }
 }
 
 #[derive(Clone)]
