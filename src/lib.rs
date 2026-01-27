@@ -79,16 +79,33 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     }
 
     pub fn move_block(&mut self, direction: Direction) -> () {
-        self.active_block = self.active_block.map(|block| Block {
-            position_in_grid: Point {
-                row: block.position_in_grid.row,
-                column: if block.cells().iter().any(|cell| cell.column == 0) {
-                    block.position_in_grid.column
-                } else {
-                    block.position_in_grid.column - 1
+        self.active_block = self.active_block.map(|block| match direction {
+            Direction::Left => Block {
+                position_in_grid: Point {
+                    row: block.position_in_grid.row,
+                    column: if block.cells().iter().any(|cell| cell.column == 0) {
+                        block.position_in_grid.column
+                    } else {
+                        block.position_in_grid.column - 1
+                    },
                 },
+                block_type: block.block_type,
             },
-            block_type: block.block_type,
+            Direction::Right => Block {
+                position_in_grid: Point {
+                    row: block.position_in_grid.row,
+                    column: if block
+                        .cells()
+                        .iter()
+                        .any(|cell| cell.column == (self.width - 1) as i8)
+                    {
+                        block.position_in_grid.column
+                    } else {
+                        block.position_in_grid.column + 1
+                    },
+                },
+                block_type: block.block_type,
+            },
         })
     }
 }
@@ -244,4 +261,5 @@ fn it_gets_and_sets_correct_grid_cells() {
 
 pub enum Direction {
     Left,
+    Right,
 }

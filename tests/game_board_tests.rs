@@ -82,6 +82,33 @@ fn it_can_move_a_block_to_the_left_of_the_board() {
     insta::assert_snapshot!("board after moving too far left", renderer.get_snapshot());
 }
 
+#[test]
+fn it_can_move_a_block_to_the_right_of_the_board() {
+    let renderer = TestRenderer::new();
+    let mut block_generator = TestBlockBuilder::new();
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
+
+    tick_game_board_times(4, &mut game_board);
+
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after moving right twice", renderer.get_snapshot());
+
+    tick_game_board_times(2, &mut game_board);
+
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after moving too far right", renderer.get_snapshot());
+}
+
 fn tick_game_board_times<T: RendersGameBoard, V: BuildsBlocks>(
     number_of_times: u8,
     game_board: &mut GameBoard<T, V>,
