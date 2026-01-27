@@ -112,27 +112,7 @@ impl Block {
     }
 
     fn covers(self, grid_coordinates: Point) -> bool {
-        let blah = match self.block_type {
-            BlockType::Square => {
-                let block_covers_vertically = grid_coordinates.row == self.position_in_grid.row
-                    || grid_coordinates.row == self.position_in_grid.row + 1;
-                let block_covers_horizontally = grid_coordinates.column
-                    == self.position_in_grid.column
-                    || grid_coordinates.column == self.position_in_grid.column + 1;
-                (block_covers_horizontally, block_covers_vertically)
-            }
-            BlockType::Line => {
-                let block_covers_vertically = grid_coordinates.row == self.position_in_grid.row
-                    || grid_coordinates.row == self.position_in_grid.row + 1
-                    || grid_coordinates.row == self.position_in_grid.row + 2
-                    || grid_coordinates.row == self.position_in_grid.row + 3;
-                let block_covers_horizontally =
-                    grid_coordinates.column == self.position_in_grid.column;
-                (block_covers_horizontally, block_covers_vertically)
-            }
-        };
-
-        blah.0 && blah.1
+        self.cells().iter().any(|cell| *cell == grid_coordinates)
     }
 
     fn reached_row(self, row_index: i8) -> bool {
@@ -162,23 +142,23 @@ impl Block {
             BlockType::Line => vec![
                 Point { row, column },
                 Point {
-                    row,
-                    column: column + 1,
+                    row: row + 1,
+                    column,
                 },
                 Point {
-                    row,
-                    column: column + 2,
+                    row: row + 2,
+                    column,
                 },
                 Point {
-                    row,
-                    column: column + 3,
+                    row: row + 3,
+                    column,
                 },
             ],
         }
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 struct Point {
     row: i8,
     column: i8,
