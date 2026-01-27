@@ -4,6 +4,7 @@ pub struct GameBoard<'a, T: RendersGameBoard, V: BuildsBlocks> {
     active_block: Option<Block>,
     renderer: &'a T,
     block_builder: &'a mut V,
+    dead_cells: Grid,
 }
 
 impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
@@ -21,7 +22,21 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     pub fn tick(&mut self) -> () {
         self.active_block = Some(
             self.active_block
-                .take_if(|block| !block.reached_row((self.height - 1) as i8))
+                .take_if(|block| {
+                    let block_is_still_moving = !block.reached_row((self.height - 1) as i8);
+
+                    if !block_is_still_moving {
+                        // Add it to the dead cells
+                        for cell in block.cells() {
+                            self.dead_cells.set(
+                                cell.row.try_into().unwrap_or_default(),
+                                cell.column.try_into().unwrap_or_default(),
+                            );
+                        }
+                    }
+
+                    block_is_still_moving
+                })
                 .map_or_else(|| self.block_builder.build(), |block| block.move_down()),
         );
     }
@@ -29,10 +44,12 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     fn instructions_for_row(&self, row_index: u8, instructions: &mut Vec<RenderInstruction>) {
         instructions.push(RenderInstruction::Character('|'));
         for column_index in 0..self.width {
-            if self.active_block.map_or(false, |block| {
+            if self.dead_cells.get(row_index, column_index) {
+                instructions.push(RenderInstruction::Character('x'));
+            } else if self.active_block.map_or(false, |block| {
                 block.covers(Point {
-                    x: row_index as i8,
-                    y: column_index as i8,
+                    row: row_index as i8,
+                    column: column_index as i8,
                 })
             }) {
                 instructions.push(RenderInstruction::Character('+'));
@@ -57,6 +74,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
             active_block: None,
             renderer,
             block_builder: block_generator,
+            dead_cells: Grid::new(10, 20),
         }
     }
 }
@@ -76,8 +94,8 @@ impl Block {
     pub fn new(grid_width: u8, block_type: BlockType) -> Block {
         Block {
             position_in_grid: Point {
-                x: -2,
-                y: (grid_width / 2 - 1).try_into().unwrap_or_default(),
+                row: -2,
+                column: (grid_width / 2 - 1).try_into().unwrap_or_default(),
             },
             block_type,
         }
@@ -86,8 +104,8 @@ impl Block {
     fn move_down(self) -> Block {
         Block {
             position_in_grid: Point {
-                x: self.position_in_grid.x + 1,
-                y: self.position_in_grid.y,
+                row: self.position_in_grid.row + 1,
+                column: self.position_in_grid.column,
             },
             block_type: self.block_type,
         }
@@ -96,18 +114,20 @@ impl Block {
     fn covers(self, grid_coordinates: Point) -> bool {
         let blah = match self.block_type {
             BlockType::Square => {
-                let block_covers_vertically = grid_coordinates.x == self.position_in_grid.x
-                    || grid_coordinates.x == self.position_in_grid.x + 1;
-                let block_covers_horizontally = grid_coordinates.y == self.position_in_grid.y
-                    || grid_coordinates.y == self.position_in_grid.y + 1;
+                let block_covers_vertically = grid_coordinates.row == self.position_in_grid.row
+                    || grid_coordinates.row == self.position_in_grid.row + 1;
+                let block_covers_horizontally = grid_coordinates.column
+                    == self.position_in_grid.column
+                    || grid_coordinates.column == self.position_in_grid.column + 1;
                 (block_covers_horizontally, block_covers_vertically)
             }
             BlockType::Line => {
-                let block_covers_vertically = grid_coordinates.x == self.position_in_grid.x
-                    || grid_coordinates.x == self.position_in_grid.x + 1
-                    || grid_coordinates.x == self.position_in_grid.x + 2
-                    || grid_coordinates.x == self.position_in_grid.x + 3;
-                let block_covers_horizontally = grid_coordinates.y == self.position_in_grid.y;
+                let block_covers_vertically = grid_coordinates.row == self.position_in_grid.row
+                    || grid_coordinates.row == self.position_in_grid.row + 1
+                    || grid_coordinates.row == self.position_in_grid.row + 2
+                    || grid_coordinates.row == self.position_in_grid.row + 3;
+                let block_covers_horizontally =
+                    grid_coordinates.column == self.position_in_grid.column;
                 (block_covers_horizontally, block_covers_vertically)
             }
         };
@@ -116,14 +136,52 @@ impl Block {
     }
 
     fn reached_row(self, row_index: i8) -> bool {
-        row_index == self.position_in_grid.x || row_index == self.position_in_grid.x + 1
+        row_index == self.position_in_grid.row || row_index == self.position_in_grid.row + 1
+    }
+
+    fn cells(self) -> Vec<Point> {
+        let row = self.position_in_grid.row;
+        let column = self.position_in_grid.column;
+
+        match self.block_type {
+            BlockType::Square => vec![
+                Point { row, column },
+                Point {
+                    row: row + 1,
+                    column,
+                },
+                Point {
+                    row,
+                    column: column + 1,
+                },
+                Point {
+                    row: row + 1,
+                    column: column + 1,
+                },
+            ],
+            BlockType::Line => vec![
+                Point { row, column },
+                Point {
+                    row,
+                    column: column + 1,
+                },
+                Point {
+                    row,
+                    column: column + 2,
+                },
+                Point {
+                    row,
+                    column: column + 3,
+                },
+            ],
+        }
     }
 }
 
 #[derive(Clone, Copy)]
 struct Point {
-    x: i8,
-    y: i8,
+    row: i8,
+    column: i8,
 }
 
 pub trait RendersGameBoard {
@@ -138,4 +196,54 @@ pub trait BuildsBlocks {
 pub enum BlockType {
     Square,
     Line,
+}
+
+struct Grid {
+    cells: Vec<bool>,
+    width: u8,
+}
+
+impl Grid {
+    fn get(&self, row: u8, column: u8) -> bool {
+        self.cells[(self.width * row + column) as usize]
+    }
+
+    fn set(&mut self, row: u8, column: u8) -> () {
+        self.cells[(self.width * row + column) as usize] = true;
+    }
+
+    fn new(width: u8, height: u8) -> Grid {
+        Grid {
+            cells: vec![false; (width * height) as usize],
+            width,
+        }
+    }
+}
+
+#[test]
+fn it_gets_and_sets_correct_grid_cells() {
+    let mut grid = Grid::new(10, 20);
+
+    assert!(!grid.get(0, 0));
+    grid.set(0, 0);
+    assert!(grid.get(0, 0));
+
+    assert!(!grid.get(5, 2));
+    grid.set(5, 2);
+    assert!(grid.get(5, 2));
+    assert!(!grid.get(2, 5));
+
+    assert!(!grid.get(9, 19));
+    grid.set(9, 19);
+    assert!(grid.get(9, 19));
+    assert!(!grid.get(19, 9));
+
+    for row in 3..5 {
+        for column in 2..4 {
+            grid.set(row, column);
+        }
+    }
+
+    assert!(grid.get(3, 2));
+    assert!(!grid.get(5, 4));
 }

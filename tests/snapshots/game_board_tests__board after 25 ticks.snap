@@ -20,6 +20,6 @@ expression: renderer.get_snapshot()
 |          |
 |          |
 |          |
-|          |
-|          |
+|    xx    |
+|    xx    |
 ------------
