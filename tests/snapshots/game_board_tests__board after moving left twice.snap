@@ -1,0 +1,25 @@
+---
+source: tests/game_board_tests.rs
+expression: renderer.get_snapshot()
+---
+|          |
+|  ++      |
+|  ++      |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+|          |
+------------

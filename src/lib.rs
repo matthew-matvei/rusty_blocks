@@ -77,6 +77,20 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
             dead_cells: Grid::new(10, 20),
         }
     }
+
+    pub fn move_block(&mut self, direction: Direction) -> () {
+        self.active_block = self.active_block.map(|block| Block {
+            position_in_grid: Point {
+                row: block.position_in_grid.row,
+                column: if block.cells().iter().any(|cell| cell.column == 0) {
+                    block.position_in_grid.column
+                } else {
+                    block.position_in_grid.column - 1
+                },
+            },
+            block_type: block.block_type,
+        })
+    }
 }
 
 pub enum RenderInstruction {
@@ -226,4 +240,8 @@ fn it_gets_and_sets_correct_grid_cells() {
 
     assert!(grid.get(3, 2));
     assert!(!grid.get(5, 4));
+}
+
+pub enum Direction {
+    Left,
 }
