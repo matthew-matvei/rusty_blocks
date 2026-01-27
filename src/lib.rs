@@ -25,7 +25,20 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
                 .take_if(|block| {
                     let block_is_still_moving = !block.reached_row((self.height - 1) as i8);
 
-                    if !block_is_still_moving {
+                    let next_row_is_dead = block
+                        .move_down()
+                        .cells()
+                        .iter()
+                        .filter(|cell| cell.row >= 0)
+                        .filter(|cell| cell.row < self.height.try_into().unwrap())
+                        .any(|cell| {
+                            self.dead_cells.get(
+                                cell.row.try_into().unwrap(),
+                                cell.column.try_into().unwrap(),
+                            )
+                        });
+
+                    if !block_is_still_moving || next_row_is_dead {
                         // Add it to the dead cells
                         for cell in block.cells() {
                             self.dead_cells.set(
@@ -147,7 +160,7 @@ impl Block {
     }
 
     fn reached_row(self, row_index: i8) -> bool {
-        row_index == self.position_in_grid.row || row_index == self.position_in_grid.row + 1
+        self.cells().iter().any(|cell| cell.row == row_index)
     }
 
     fn cells(self) -> Vec<Point> {
