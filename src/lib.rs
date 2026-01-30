@@ -25,33 +25,37 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
                 .take_if(|block| {
                     let block_is_still_moving = !block.reached_row((self.height - 1) as i8);
 
-                    let next_row_is_dead = block
-                        .move_down()
-                        .cells()
-                        .iter()
-                        .filter(|cell| cell.row >= 0)
-                        .filter(|cell| cell.row < self.height.try_into().unwrap())
-                        .any(|cell| {
-                            self.dead_cells.get(
-                                cell.row.try_into().unwrap(),
-                                cell.column.try_into().unwrap(),
-                            )
-                        });
-
-                    if !block_is_still_moving || next_row_is_dead {
-                        // Add it to the dead cells
-                        for cell in block.cells() {
-                            self.dead_cells.set(
-                                cell.row.try_into().unwrap_or_default(),
-                                cell.column.try_into().unwrap_or_default(),
-                            );
-                        }
+                    if !block_is_still_moving || Self::next_row_is_dead(&self.dead_cells, block) {
+                        Self::kill(block, &mut self.dead_cells);
                     }
 
                     block_is_still_moving
                 })
                 .map_or_else(|| self.block_builder.build(), |block| block.move_down()),
         );
+    }
+
+    fn kill(block: &Block, dead_cells: &mut Grid) {
+        for cell in block.cells() {
+            dead_cells.set(
+                cell.row.try_into().unwrap_or_default(),
+                cell.column.try_into().unwrap_or_default(),
+            );
+        }
+    }
+
+    fn next_row_is_dead(dead_cells: &Grid, block: &mut Block) -> bool {
+        block
+            .move_down()
+            .cells()
+            .iter()
+            .filter(|cell| cell.row >= 0)
+            .any(|cell| {
+                dead_cells.get(
+                    cell.row.try_into().unwrap(),
+                    cell.column.try_into().unwrap(),
+                )
+            })
     }
 
     fn instructions_for_row(&self, row_index: u8, instructions: &mut Vec<RenderInstruction>) {
