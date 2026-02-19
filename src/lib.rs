@@ -91,13 +91,13 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
         }
     }
 
-    pub fn new(renderer: &'a T, block_generator: &'a mut V) -> GameBoard<'a, T, V> {
+    pub fn new(renderer: &'a T, block_builder: &'a mut V) -> GameBoard<'a, T, V> {
         GameBoard {
             width: 10,
             height: 20,
             active_block: None,
             renderer,
-            block_builder: block_generator,
+            block_builder,
             dead_cells: Grid::new(10, 20),
         }
     }
@@ -122,6 +122,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub enum RenderInstruction {
     Character(char),
     NextLine,
