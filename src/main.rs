@@ -1,3 +1,5 @@
+use std::time::{Duration, Instant};
+
 use ratatui::{text::Line, widgets::Paragraph};
 use rusty_blocks::{
     Block, BlockType, BuildsBlocks, GameBoard, RenderInstruction, RendersGameBoard,
@@ -7,20 +9,21 @@ fn main() {
     let console_renderer = ConsoleRenderer {};
     let mut random_block_builder = RandomBlockBuilder {};
     let mut game_board = GameBoard::new(&console_renderer, &mut random_block_builder);
+    let mut last_tick = Instant::now();
+    let tick_rate = Duration::from_secs(1);
+    let mut remaining_ticks = 30;
 
     game_board.render();
-    game_board.tick();
-    game_board.tick();
-    game_board.tick();
-    game_board.tick();
-    game_board.tick();
-    game_board.tick();
-    game_board.tick();
-    game_board.tick();
-    game_board.render();
-    game_board.tick();
-    game_board.tick();
-    game_board.render();
+
+    while remaining_ticks > 0 {
+        game_board.render();
+
+        if last_tick.elapsed() >= tick_rate {
+            game_board.tick();
+            last_tick = Instant::now();
+            remaining_ticks = remaining_ticks - 1;
+        }
+    }
 }
 
 struct ConsoleRenderer;
