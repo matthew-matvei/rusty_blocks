@@ -1,15 +1,20 @@
 use std::{
     cell::RefCell,
+    io,
     time::{Duration, Instant},
 };
 
-use crossterm::event::{self, Event, KeyCode, KeyEventKind};
+use crossterm::{
+    event::{self, Event, KeyCode, KeyEventKind},
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
 use ratatui::{text::Line, widgets::Paragraph, DefaultTerminal};
 use rusty_blocks::{
     Block, BlockType, BuildsBlocks, Direction, GameBoard, RenderInstruction, RendersGameBoard,
 };
 
-fn main() {
+fn main() -> io::Result<()> {
+    enable_raw_mode()?;
     let console_renderer = ConsoleRenderer {
         terminal: RefCell::new(ratatui::init()),
     };
@@ -19,16 +24,13 @@ fn main() {
     let tick_rate = Duration::from_secs(1);
     let mut should_exit = false;
 
-    game_board.render();
-
     while !should_exit {
         game_board.render();
-        handle_events(
-            tick_rate,
-            last_tick,
+
+        handle_keyboard_events(
             || should_exit = true,
             |direction| game_board.move_block(direction),
-        );
+        )?;
 
         if last_tick.elapsed() >= tick_rate {
             game_board.tick();
@@ -37,18 +39,19 @@ fn main() {
     }
 
     ratatui::restore();
+    disable_raw_mode()?;
+
+    Ok(())
 }
 
-fn handle_events(
-    tick_rate: Duration,
-    last_tick: Instant,
+fn handle_keyboard_events(
     mut on_quit: impl FnMut() -> (),
     mut on_direction_pressed: impl FnMut(Direction) -> (),
-) {
-    let timeout = tick_rate.saturating_sub(last_tick.elapsed());
+) -> io::Result<()> {
+    let timeout = Duration::from_millis(10);
 
-    while event::poll(timeout).unwrap() {
-        if let Event::Key(key) = event::read().unwrap() {
+    while event::poll(timeout)? {
+        if let Event::Key(key) = event::read()? {
             if key.kind == KeyEventKind::Press {
                 match key.code {
                     KeyCode::Char('q') => on_quit(),
@@ -59,6 +62,8 @@ fn handle_events(
             }
         }
     }
+
+    Ok(())
 }
 
 struct ConsoleRenderer {
