@@ -3,6 +3,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{text::Line, widgets::Paragraph, DefaultTerminal};
 use rusty_blocks::{
     Block, BlockType, BuildsBlocks, GameBoard, RenderInstruction, RendersGameBoard,
@@ -16,17 +17,29 @@ fn main() {
     let mut game_board = GameBoard::new(&console_renderer, &mut random_block_builder);
     let mut last_tick = Instant::now();
     let tick_rate = Duration::from_secs(1);
-    let mut remaining_ticks = 30;
+    let mut should_exit = false;
 
     game_board.render();
 
-    while remaining_ticks > 0 {
+    while !should_exit {
         game_board.render();
+        handle_events(tick_rate, last_tick, || should_exit = true);
 
         if last_tick.elapsed() >= tick_rate {
             game_board.tick();
             last_tick = Instant::now();
-            remaining_ticks = remaining_ticks - 1;
+        }
+    }
+}
+
+fn handle_events(tick_rate: Duration, last_tick: Instant, mut on_quit: impl FnMut() -> ()) {
+    let timeout = tick_rate.saturating_sub(last_tick.elapsed());
+
+    while event::poll(timeout).unwrap() {
+        if let Event::Key(key) = event::read().unwrap() {
+            if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') {
+                on_quit()
+            }
         }
     }
 }
