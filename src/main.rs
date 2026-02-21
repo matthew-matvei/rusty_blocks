@@ -30,6 +30,8 @@ fn main() {
             last_tick = Instant::now();
         }
     }
+
+    ratatui::restore();
 }
 
 fn handle_events(tick_rate: Duration, last_tick: Instant, mut on_quit: impl FnMut() -> ()) {
