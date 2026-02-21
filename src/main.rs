@@ -6,7 +6,7 @@ use std::{
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::{text::Line, widgets::Paragraph, DefaultTerminal};
 use rusty_blocks::{
-    Block, BlockType, BuildsBlocks, GameBoard, RenderInstruction, RendersGameBoard,
+    Block, BlockType, BuildsBlocks, Direction, GameBoard, RenderInstruction, RendersGameBoard,
 };
 
 fn main() {
@@ -23,7 +23,12 @@ fn main() {
 
     while !should_exit {
         game_board.render();
-        handle_events(tick_rate, last_tick, || should_exit = true);
+        handle_events(
+            tick_rate,
+            last_tick,
+            || should_exit = true,
+            |direction| game_board.move_block(direction),
+        );
 
         if last_tick.elapsed() >= tick_rate {
             game_board.tick();
@@ -34,13 +39,23 @@ fn main() {
     ratatui::restore();
 }
 
-fn handle_events(tick_rate: Duration, last_tick: Instant, mut on_quit: impl FnMut() -> ()) {
+fn handle_events(
+    tick_rate: Duration,
+    last_tick: Instant,
+    mut on_quit: impl FnMut() -> (),
+    mut on_direction_pressed: impl FnMut(Direction) -> (),
+) {
     let timeout = tick_rate.saturating_sub(last_tick.elapsed());
 
     while event::poll(timeout).unwrap() {
         if let Event::Key(key) = event::read().unwrap() {
-            if key.kind == KeyEventKind::Press && key.code == KeyCode::Char('q') {
-                on_quit()
+            if key.kind == KeyEventKind::Press {
+                match key.code {
+                    KeyCode::Char('q') => on_quit(),
+                    KeyCode::Left => on_direction_pressed(Direction::Left),
+                    KeyCode::Right => on_direction_pressed(Direction::Right),
+                    _ => (),
+                }
             }
         }
     }
