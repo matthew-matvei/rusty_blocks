@@ -1,12 +1,17 @@
-use std::time::{Duration, Instant};
+use std::{
+    cell::RefCell,
+    time::{Duration, Instant},
+};
 
-use ratatui::{text::Line, widgets::Paragraph};
+use ratatui::{text::Line, widgets::Paragraph, DefaultTerminal};
 use rusty_blocks::{
     Block, BlockType, BuildsBlocks, GameBoard, RenderInstruction, RendersGameBoard,
 };
 
 fn main() {
-    let console_renderer = ConsoleRenderer {};
+    let console_renderer = ConsoleRenderer {
+        terminal: RefCell::new(ratatui::init()),
+    };
     let mut random_block_builder = RandomBlockBuilder {};
     let mut game_board = GameBoard::new(&console_renderer, &mut random_block_builder);
     let mut last_tick = Instant::now();
@@ -26,11 +31,12 @@ fn main() {
     }
 }
 
-struct ConsoleRenderer;
+struct ConsoleRenderer {
+    terminal: RefCell<DefaultTerminal>,
+}
+
 impl RendersGameBoard for ConsoleRenderer {
     fn render(&self, instructions: Vec<rusty_blocks::RenderInstruction>) {
-        let mut terminal = ratatui::init();
-
         let lines: Vec<Line> = instructions
             .split(|instruction| *instruction == RenderInstruction::NextLine)
             .map(|line| {
@@ -44,7 +50,8 @@ impl RendersGameBoard for ConsoleRenderer {
             .map(|line| Line::from(line))
             .collect();
 
-        terminal
+        self.terminal
+            .borrow_mut()
             .draw(|frame| frame.render_widget(Paragraph::new(lines), frame.area()))
             .unwrap();
     }
