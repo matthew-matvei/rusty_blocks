@@ -1,3 +1,4 @@
+use ratatui::{text::Line, widgets::Paragraph};
 use rusty_blocks::{
     Block, BlockType, BuildsBlocks, GameBoard, RenderInstruction, RendersGameBoard,
 };
@@ -17,24 +18,32 @@ fn main() {
     game_board.tick();
     game_board.tick();
     game_board.render();
+    game_board.tick();
+    game_board.tick();
+    game_board.render();
 }
 
 struct ConsoleRenderer;
 impl RendersGameBoard for ConsoleRenderer {
     fn render(&self, instructions: Vec<rusty_blocks::RenderInstruction>) {
-        let lines_of_instructions =
-            instructions.split(|instruction| *instruction == RenderInstruction::NextLine);
+        let mut terminal = ratatui::init();
 
-        for line in lines_of_instructions {
-            let line_to_print: String = line
-                .iter()
-                .filter_map(|instruction| match instruction {
-                    RenderInstruction::Character(character) => Some(character),
-                    _ => None,
-                })
-                .collect();
-            println!("{}", line_to_print)
-        }
+        let lines: Vec<Line> = instructions
+            .split(|instruction| *instruction == RenderInstruction::NextLine)
+            .map(|line| {
+                line.iter()
+                    .filter_map(|instruction| match instruction {
+                        RenderInstruction::Character(character) => Some(character),
+                        _ => None,
+                    })
+                    .collect::<String>()
+            })
+            .map(|line| Line::from(line))
+            .collect();
+
+        terminal
+            .draw(|frame| frame.render_widget(Paragraph::new(lines), frame.area()))
+            .unwrap();
     }
 }
 
