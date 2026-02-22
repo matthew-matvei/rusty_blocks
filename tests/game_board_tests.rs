@@ -110,6 +110,26 @@ fn it_can_move_a_block_to_the_right_of_the_board() {
 }
 
 #[test]
+fn it_can_move_a_block_down_to_the_bottom_of_the_board() {
+    let renderer = TestRenderer::new();
+    let mut block_generator = TestBlockBuilder::new();
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
+
+    tick_game_board_times(4, &mut game_board);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board before moving down twice", renderer.get_snapshot());
+
+    game_board.move_block(Direction::Down);
+    game_board.move_block(Direction::Down);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after moving down twice", renderer.get_snapshot());
+}
+
+#[test]
 fn it_kills_a_block_when_it_ticks_into_a_dead_block() {
     let renderer = TestRenderer::new();
     let mut block_generator = TestBlockBuilder::new();

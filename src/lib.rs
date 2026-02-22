@@ -118,6 +118,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
                     block.move_right()
                 }
             }
+            Direction::Down => block.move_down(),
         })
     }
 }
@@ -139,4 +140,5 @@ pub trait BuildsBlocks {
 pub enum Direction {
     Left,
     Right,
+    Down,
 }
