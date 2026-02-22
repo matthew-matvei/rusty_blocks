@@ -32,7 +32,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
                 .take_if(|block| {
                     let block_is_still_moving = !block.covers_row((self.height - 1) as i8);
 
-                    if !block_is_still_moving || Self::next_row_is_dead(&self.dead_cells, block) {
+                    if !block_is_still_moving || Self::next_row_is_dead(&self.dead_cells, *block) {
                         Self::kill(block, &mut self.dead_cells);
                     }
 
@@ -51,8 +51,7 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
         }
     }
 
-    // TODO: does 'block' need to be &mut?
-    fn next_row_is_dead(dead_cells: &Grid, block: &mut Block) -> bool {
+    fn next_row_is_dead(dead_cells: &Grid, block: Block) -> bool {
         block.move_down().covers_cells(dead_cells)
     }
 
