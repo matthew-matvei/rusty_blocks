@@ -79,6 +79,18 @@ impl Block {
         self.cells().iter().any(|cell| cell.column == column_index)
     }
 
+    pub(crate) fn covers_cells(self, grid: &Grid) -> bool {
+        self.cells()
+            .iter()
+            .filter(|cell| cell.row >= 0)
+            .any(|cell| {
+                grid.get(
+                    cell.row.try_into().unwrap(),
+                    cell.column.try_into().unwrap(),
+                )
+            })
+    }
+
     pub(crate) fn cells(self) -> Vec<Point> {
         let row = self.position_in_grid.row;
         let column = self.position_in_grid.column;

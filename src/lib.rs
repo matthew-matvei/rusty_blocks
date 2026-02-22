@@ -51,18 +51,9 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
         }
     }
 
+    // TODO: does 'block' need to be &mut?
     fn next_row_is_dead(dead_cells: &Grid, block: &mut Block) -> bool {
-        block
-            .move_down()
-            .cells()
-            .iter()
-            .filter(|cell| cell.row >= 0)
-            .any(|cell| {
-                dead_cells.get(
-                    cell.row.try_into().unwrap(),
-                    cell.column.try_into().unwrap(),
-                )
-            })
+        block.move_down().covers_cells(dead_cells)
     }
 
     fn instructions_for_row(&self, row_index: u8, instructions: &mut Vec<RenderInstruction>) {
@@ -103,28 +94,32 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     }
 
     pub fn move_block(&mut self, direction: Direction) -> () {
-        self.active_block = self.active_block.map(|block| match direction {
-            Direction::Left => {
-                if block.covers_column(0) {
-                    block
-                } else {
-                    block.move_left()
+        self.active_block = self.active_block.map(|block| {
+            match direction {
+                Direction::Left => {
+                    if block.covers_column(0) {
+                        None
+                    } else {
+                        Some(block.move_left())
+                    }
+                }
+                Direction::Right => {
+                    if block.covers_column((self.width - 1) as i8) {
+                        None
+                    } else {
+                        Some(block.move_right())
+                    }
+                }
+                Direction::Down => {
+                    if block.covers_row((self.height - 1) as i8) {
+                        None
+                    } else {
+                        Some(block.move_down())
+                    }
                 }
             }
-            Direction::Right => {
-                if block.covers_column((self.width - 1) as i8) {
-                    block
-                } else {
-                    block.move_right()
-                }
-            }
-            Direction::Down => {
-                if block.covers_row((self.height - 1) as i8) {
-                    block
-                } else {
-                    block.move_down()
-                }
-            }
+            .take_if(|block| !block.covers_cells(&self.dead_cells))
+            .unwrap_or(block)
         })
     }
 }

@@ -164,6 +164,35 @@ fn it_kills_a_block_when_it_ticks_into_a_dead_block() {
     insta::assert_snapshot!("board after 45 ticks", renderer.get_snapshot());
 }
 
+#[test]
+fn it_stops_a_block_moving_through_a_dead_block() {
+    let renderer = TestRenderer::new();
+    let mut block_generator = TestBlockBuilder::new();
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
+
+    tick_game_board_times(30, &mut game_board);
+    game_board.move_block(Direction::Left);
+    tick_game_board_times(9, &mut game_board);
+
+    game_board.render();
+
+    // TODO: use a .pop_snapshot that ensures we don't forget to render
+    insta::assert_snapshot!(
+        "board before trying to move block through other block",
+        renderer.get_snapshot()
+    );
+
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+
+    game_board.render();
+
+    insta::assert_snapshot!(
+        "board after trying to move block through other block",
+        renderer.get_snapshot()
+    );
+}
+
 fn tick_game_board_times<T: RendersGameBoard, V: BuildsBlocks>(
     number_of_times: u8,
     game_board: &mut GameBoard<T, V>,
