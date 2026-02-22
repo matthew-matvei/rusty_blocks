@@ -57,6 +57,7 @@ fn handle_keyboard_events(
                     KeyCode::Char('q') => on_quit(),
                     KeyCode::Left => on_direction_pressed(Direction::Left),
                     KeyCode::Right => on_direction_pressed(Direction::Right),
+                    KeyCode::Down => on_direction_pressed(Direction::Down),
                     _ => (),
                 }
             }
