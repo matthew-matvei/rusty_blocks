@@ -118,7 +118,13 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
                     block.move_right()
                 }
             }
-            Direction::Down => block.move_down(),
+            Direction::Down => {
+                if block.covers_row((self.height - 1) as i8) {
+                    block
+                } else {
+                    block.move_down()
+                }
+            }
         })
     }
 }

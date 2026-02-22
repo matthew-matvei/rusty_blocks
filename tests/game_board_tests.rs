@@ -127,6 +127,22 @@ fn it_can_move_a_block_down_to_the_bottom_of_the_board() {
     game_board.render();
 
     insta::assert_snapshot!("board after moving down twice", renderer.get_snapshot());
+
+    tick_game_board_times(15, &mut game_board);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board with block at bottom", renderer.get_snapshot());
+
+    game_board.move_block(Direction::Down);
+    game_board.move_block(Direction::Down);
+
+    game_board.render();
+
+    insta::assert_snapshot!(
+        "board with block at bottom after attempting to move down twice",
+        renderer.get_snapshot()
+    );
 }
 
 #[test]
