@@ -8,7 +8,7 @@ fn it_renders_an_empty_board_after_initialising() {
     let mut block_generator = TestBlockBuilder::new();
     GameBoard::new(&renderer, &mut block_generator).render();
 
-    insta::assert_snapshot!(renderer.get_snapshot());
+    insta::assert_snapshot!(renderer.pop_snapshot());
 }
 
 #[test]
@@ -21,19 +21,19 @@ fn it_moves_a_block_downwards_as_the_game_ticks() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 2 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 2 ticks", renderer.pop_snapshot());
 
     tick_game_board_times(4, &mut game_board);
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 6 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 6 ticks", renderer.pop_snapshot());
 
     tick_game_board_times(8, &mut game_board);
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 14 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 14 ticks", renderer.pop_snapshot());
 }
 
 #[test]
@@ -46,13 +46,13 @@ fn it_loads_a_next_block_once_the_first_reaches_the_bottom() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 21 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 21 ticks", renderer.pop_snapshot());
 
     tick_game_board_times(4, &mut game_board);
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 25 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 25 ticks", renderer.pop_snapshot());
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn it_can_move_a_block_to_the_left_of_the_board() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after moving left twice", renderer.get_snapshot());
+    insta::assert_snapshot!("board after moving left twice", renderer.pop_snapshot());
 
     tick_game_board_times(2, &mut game_board);
 
@@ -79,7 +79,7 @@ fn it_can_move_a_block_to_the_left_of_the_board() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after moving too far left", renderer.get_snapshot());
+    insta::assert_snapshot!("board after moving too far left", renderer.pop_snapshot());
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn it_can_move_a_block_to_the_right_of_the_board() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after moving right twice", renderer.get_snapshot());
+    insta::assert_snapshot!("board after moving right twice", renderer.pop_snapshot());
 
     tick_game_board_times(2, &mut game_board);
 
@@ -106,7 +106,7 @@ fn it_can_move_a_block_to_the_right_of_the_board() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after moving too far right", renderer.get_snapshot());
+    insta::assert_snapshot!("board after moving too far right", renderer.pop_snapshot());
 }
 
 #[test]
@@ -119,20 +119,20 @@ fn it_can_move_a_block_down_to_the_bottom_of_the_board() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board before moving down twice", renderer.get_snapshot());
+    insta::assert_snapshot!("board before moving down twice", renderer.pop_snapshot());
 
     game_board.move_block(Direction::Down);
     game_board.move_block(Direction::Down);
 
     game_board.render();
 
-    insta::assert_snapshot!("board after moving down twice", renderer.get_snapshot());
+    insta::assert_snapshot!("board after moving down twice", renderer.pop_snapshot());
 
     tick_game_board_times(15, &mut game_board);
 
     game_board.render();
 
-    insta::assert_snapshot!("board with block at bottom", renderer.get_snapshot());
+    insta::assert_snapshot!("board with block at bottom", renderer.pop_snapshot());
 
     game_board.move_block(Direction::Down);
     game_board.move_block(Direction::Down);
@@ -141,7 +141,7 @@ fn it_can_move_a_block_down_to_the_bottom_of_the_board() {
 
     insta::assert_snapshot!(
         "board with block at bottom after attempting to move down twice",
-        renderer.get_snapshot()
+        renderer.pop_snapshot()
     );
 }
 
@@ -155,13 +155,13 @@ fn it_kills_a_block_when_it_ticks_into_a_dead_block() {
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 25 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 25 ticks", renderer.pop_snapshot());
 
     tick_game_board_times(20, &mut game_board);
 
     game_board.render();
 
-    insta::assert_snapshot!("board after 45 ticks", renderer.get_snapshot());
+    insta::assert_snapshot!("board after 45 ticks", renderer.pop_snapshot());
 }
 
 #[test]
@@ -176,10 +176,9 @@ fn it_stops_a_block_moving_through_a_dead_block() {
 
     game_board.render();
 
-    // TODO: use a .pop_snapshot that ensures we don't forget to render
     insta::assert_snapshot!(
         "board before trying to move block through other block",
-        renderer.get_snapshot()
+        renderer.pop_snapshot()
     );
 
     game_board.move_block(Direction::Right);
@@ -189,7 +188,7 @@ fn it_stops_a_block_moving_through_a_dead_block() {
 
     insta::assert_snapshot!(
         "board after trying to move block through other block",
-        renderer.get_snapshot()
+        renderer.pop_snapshot()
     );
 }
 
@@ -208,8 +207,15 @@ struct TestRenderer {
 }
 
 impl TestRenderer {
-    fn get_snapshot(&self) -> String {
-        self.snapshot.borrow().to_string()
+    fn pop_snapshot(&self) -> String {
+        let snapshot = self.snapshot.borrow().to_string();
+
+        if snapshot.is_empty() {
+            panic!("Cannot pop empty snapshot. Maybe you forgot to render the GameBoard?")
+        } else {
+            self.snapshot.borrow_mut().clear();
+            snapshot
+        }
     }
 
     fn new() -> TestRenderer {
