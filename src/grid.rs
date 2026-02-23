@@ -1,3 +1,5 @@
+use std::vec;
+
 pub(crate) struct Grid {
     cells: Vec<bool>,
     width: u8,
@@ -12,10 +14,61 @@ impl Grid {
         self.cells[(self.width * row + column) as usize] = true;
     }
 
+    pub(crate) fn iter(&self) -> GridIterator<'_> {
+        self.into_iter()
+    }
+
+    pub(crate) fn size(&self) -> usize {
+        self.cells.len()
+    }
+
     pub(crate) fn new(width: u8, height: u8) -> Grid {
         Grid {
             cells: vec![false; (width * height) as usize],
             width,
+        }
+    }
+
+    pub(crate) fn from_cells(cells: Vec<bool>, width: u8, height: u8) -> Grid {
+        let new_row_count = height - (cells.len() as u8 / width);
+        let mut new_rows = vec![false; (new_row_count * width) as usize];
+        new_rows.append(&mut cells.clone());
+
+        Grid {
+            cells: new_rows,
+            width,
+        }
+    }
+}
+
+pub(crate) struct GridIterator<'a> {
+    grid: &'a Grid,
+    index: usize,
+}
+
+impl<'a> Iterator for GridIterator<'a> {
+    type Item = Vec<bool>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.grid.cells.len() {
+            let result =
+                Vec::from(&self.grid.cells[self.index..(self.index + (self.grid.width as usize))]);
+            self.index += self.grid.width as usize;
+            Some(result)
+        } else {
+            None
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a Grid {
+    type Item = Vec<bool>;
+    type IntoIter = GridIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        GridIterator {
+            grid: self,
+            index: 0,
         }
     }
 }
@@ -168,4 +221,21 @@ fn it_gets_and_sets_correct_grid_cells() {
 
     assert!(grid.get(3, 2));
     assert!(!grid.get(5, 4));
+}
+
+#[test]
+fn it_iterates_rows_and_columns_correctly() {
+    let mut grid = Grid::new(4, 4);
+
+    grid.set(0, 2);
+    grid.set(1, 1);
+    grid.set(2, 1);
+    grid.set(2, 3);
+    grid.set(3, 0);
+
+    for (row_index, row) in grid.iter().enumerate() {
+        for (column_index, cell) in row.iter().enumerate() {
+            assert_eq!(grid.get(row_index as u8, column_index as u8), *cell)
+        }
+    }
 }

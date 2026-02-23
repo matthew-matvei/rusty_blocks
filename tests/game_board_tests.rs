@@ -192,6 +192,46 @@ fn it_stops_a_block_moving_through_a_dead_block() {
     );
 }
 
+#[test]
+fn it_clears_rows_of_dead_cells() {
+    let renderer = TestRenderer::new();
+    let mut block_generator = TestBlockBuilder::new();
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
+
+    tick_game_board_times(10, &mut game_board);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    tick_game_board_times(30, &mut game_board);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    game_board.move_block(Direction::Right);
+    tick_game_board_times(10, &mut game_board);
+    game_board.move_block(Direction::Right);
+    tick_game_board_times(30, &mut game_board);
+    tick_game_board_times(10, &mut game_board);
+    game_board.move_block(Direction::Left);
+    game_board.move_block(Direction::Left);
+    tick_game_board_times(30, &mut game_board);
+    tick_game_board_times(10, &mut game_board);
+    game_board.move_block(Direction::Left);
+    game_board.move_block(Direction::Left);
+    game_board.move_block(Direction::Left);
+    game_board.move_block(Direction::Left);
+    tick_game_board_times(12, &mut game_board);
+
+    game_board.render();
+
+    insta::assert_snapshot!("board before rows cleared", renderer.pop_snapshot());
+
+    game_board.tick();
+
+    game_board.render();
+
+    insta::assert_snapshot!("board after rows cleared", renderer.pop_snapshot());
+}
+
 fn tick_game_board_times<T: RendersGameBoard, V: BuildsBlocks>(
     number_of_times: u8,
     game_board: &mut GameBoard<T, V>,

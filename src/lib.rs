@@ -27,19 +27,32 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     }
 
     pub fn tick(&mut self) -> () {
-        self.active_block = Some(
-            self.active_block
-                .take_if(|block| {
-                    let block_is_still_moving = !block.covers_row((self.height - 1) as i8);
+        let uncompleted_cells: Vec<bool> = self
+            .dead_cells
+            .iter()
+            .filter(|row| !row.iter().all(|cell| *cell))
+            .flatten()
+            .collect();
 
-                    if !block_is_still_moving || Self::next_row_is_dead(&self.dead_cells, *block) {
-                        Self::kill(block, &mut self.dead_cells);
-                    }
+        if self.dead_cells.size() != uncompleted_cells.len() {
+            self.dead_cells = Grid::from_cells(uncompleted_cells, self.width, self.height);
+        } else {
+            self.active_block = Some(
+                self.active_block
+                    .take_if(|block| {
+                        let block_is_still_moving = !block.covers_row((self.height - 1) as i8);
 
-                    block_is_still_moving
-                })
-                .map_or_else(|| self.block_builder.build(), |block| block.move_down()),
-        );
+                        if !block_is_still_moving
+                            || Self::next_row_is_dead(&self.dead_cells, *block)
+                        {
+                            Self::kill(block, &mut self.dead_cells);
+                        }
+
+                        block_is_still_moving
+                    })
+                    .map_or_else(|| self.block_builder.build(), |block| block.move_down()),
+            );
+        }
     }
 
     fn kill(block: &Block, dead_cells: &mut Grid) {
