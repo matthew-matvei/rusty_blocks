@@ -172,7 +172,7 @@ fn it_stops_a_block_moving_through_a_dead_block() {
 
     tick_game_board_times(30, &mut game_board);
     game_board.move_block(Direction::Left);
-    tick_game_board_times(9, &mut game_board);
+    tick_game_board_times(11, &mut game_board);
 
     game_board.render();
 
@@ -203,17 +203,17 @@ fn it_clears_rows_of_dead_cells() {
     game_board.move_block(Direction::Right);
     game_board.move_block(Direction::Right);
     game_board.move_block(Direction::Right);
-    tick_game_board_times(30, &mut game_board);
+    tick_game_board_times(32, &mut game_board);
     game_board.move_block(Direction::Right);
     game_board.move_block(Direction::Right);
     game_board.move_block(Direction::Right);
     tick_game_board_times(10, &mut game_board);
     game_board.move_block(Direction::Right);
-    tick_game_board_times(30, &mut game_board);
+    tick_game_board_times(32, &mut game_board);
     tick_game_board_times(10, &mut game_board);
     game_board.move_block(Direction::Left);
     game_board.move_block(Direction::Left);
-    tick_game_board_times(30, &mut game_board);
+    tick_game_board_times(32, &mut game_board);
     tick_game_board_times(10, &mut game_board);
     game_board.move_block(Direction::Left);
     game_board.move_block(Direction::Left);
