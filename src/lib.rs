@@ -18,10 +18,10 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
     pub fn render(&self) -> () {
         let mut instructions = Vec::new();
         for row_index in 0..self.height {
-            self.instructions_for_row(row_index, &mut instructions);
+            instructions.append(&mut self.instructions_for_row(row_index));
         }
 
-        self.instructions_for_bottom(&mut instructions);
+        instructions.append(&mut self.instructions_for_bottom());
 
         self.renderer.render(instructions);
     }
@@ -68,7 +68,8 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
         block.move_down().covers_cells(dead_cells)
     }
 
-    fn instructions_for_row(&self, row_index: u8, instructions: &mut Vec<RenderInstruction>) {
+    fn instructions_for_row(&self, row_index: u8) -> Vec<RenderInstruction> {
+        let mut instructions = vec![];
         instructions.push(RenderInstruction::Character('|'));
         for column_index in 0..self.width {
             if self.dead_cells.get(row_index, column_index) {
@@ -86,12 +87,14 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
         }
         instructions.push(RenderInstruction::Character('|'));
         instructions.push(RenderInstruction::NextLine);
+
+        instructions
     }
 
-    fn instructions_for_bottom(&self, instructions: &mut Vec<RenderInstruction>) {
-        for _col in 0..self.width + 2 {
-            instructions.push(RenderInstruction::Character('-'));
-        }
+    fn instructions_for_bottom(&self) -> Vec<RenderInstruction> {
+        (0..self.width + 2)
+            .map(|_| RenderInstruction::Character('-'))
+            .collect()
     }
 
     pub fn new(renderer: &'a T, block_builder: &'a mut V) -> GameBoard<'a, T, V> {
