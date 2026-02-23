@@ -98,8 +98,8 @@ impl BuildsBlocks for RandomBlockBuilder {
     fn build(&mut self) -> rusty_blocks::Block {
         let random_number: u8 = rand::random_range(0..2);
         match random_number {
-            0 => Block::new(10, rusty_blocks::BlockType::Square),
-            _ => Block::new(10, BlockType::Line),
+            0 => Block::new(4, rusty_blocks::BlockType::Square),
+            _ => Block::new(4, BlockType::Line),
         }
     }
 }

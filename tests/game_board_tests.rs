@@ -304,7 +304,6 @@ impl BuildsBlocks for TestBlockBuilder {
             self.position_in_sequence += 1;
         }
 
-        // TODO: Block itself shouldn't need to know where it is in the Game Board
-        Block::new(10, next_block_type)
+        Block::new(4, next_block_type)
     }
 }

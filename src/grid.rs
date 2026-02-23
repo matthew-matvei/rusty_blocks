@@ -80,7 +80,7 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(grid_width: u8, block_type: BlockType) -> Block {
+    pub fn new(starting_column: u8, block_type: BlockType) -> Block {
         let block_height = match block_type {
             BlockType::Square => 2,
             BlockType::Line => 4,
@@ -89,7 +89,7 @@ impl Block {
         Block {
             position_in_grid: Point {
                 row: -block_height,
-                column: (grid_width / 2 - 1).try_into().unwrap_or_default(),
+                column: starting_column.try_into().unwrap_or_default(),
             },
             block_type,
         }
