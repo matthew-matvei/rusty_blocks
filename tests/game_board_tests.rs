@@ -63,8 +63,7 @@ fn it_can_move_a_block_to_the_left_of_the_board() {
 
     tick_game_board_times(4, &mut game_board);
 
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
+    move_block_left_times(2, &mut game_board);
 
     game_board.render();
 
@@ -72,10 +71,7 @@ fn it_can_move_a_block_to_the_left_of_the_board() {
 
     tick_game_board_times(2, &mut game_board);
 
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
+    move_block_left_times(4, &mut game_board);
 
     game_board.render();
 
@@ -90,8 +86,7 @@ fn it_can_move_a_block_to_the_right_of_the_board() {
 
     tick_game_board_times(4, &mut game_board);
 
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
+    move_block_right_times(2, &mut game_board);
 
     game_board.render();
 
@@ -99,10 +94,7 @@ fn it_can_move_a_block_to_the_right_of_the_board() {
 
     tick_game_board_times(2, &mut game_board);
 
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
+    move_block_right_times(4, &mut game_board);
 
     game_board.render();
 
@@ -199,26 +191,17 @@ fn it_clears_rows_of_dead_cells() {
     let mut game_board = GameBoard::new(&renderer, &mut block_generator);
 
     tick_game_board_times(10, &mut game_board);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
+    move_block_right_times(4, &mut game_board);
     tick_game_board_times(32, &mut game_board);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
-    game_board.move_block(Direction::Right);
+    move_block_right_times(3, &mut game_board);
     tick_game_board_times(10, &mut game_board);
-    game_board.move_block(Direction::Right);
+    move_block_right_times(1, &mut game_board);
     tick_game_board_times(32, &mut game_board);
     tick_game_board_times(10, &mut game_board);
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
+    move_block_left_times(2, &mut game_board);
     tick_game_board_times(32, &mut game_board);
     tick_game_board_times(10, &mut game_board);
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
-    game_board.move_block(Direction::Left);
+    move_block_left_times(4, &mut game_board);
     tick_game_board_times(12, &mut game_board);
 
     game_board.render();
@@ -238,6 +221,24 @@ fn tick_game_board_times<T: RendersGameBoard, V: BuildsBlocks>(
 ) {
     for _ in 0..number_of_times {
         game_board.tick();
+    }
+}
+
+fn move_block_left_times(
+    number_of_times: u8,
+    game_board: &mut GameBoard<'_, TestRenderer, TestBlockBuilder>,
+) {
+    for _ in 0..number_of_times {
+        game_board.move_block(Direction::Left);
+    }
+}
+
+fn move_block_right_times(
+    number_of_times: u8,
+    game_board: &mut GameBoard<'_, TestRenderer, TestBlockBuilder>,
+) {
+    for _ in 0..number_of_times {
+        game_board.move_block(Direction::Right);
     }
 }
 
