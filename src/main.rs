@@ -74,16 +74,9 @@ struct ConsoleRenderer {
 impl RendersGameBoard for ConsoleRenderer {
     fn render(&self, instructions: Vec<rusty_blocks::RenderInstruction>) {
         let lines: Vec<Line> = instructions
-            .split(|instruction| *instruction == RenderInstruction::NextLine)
-            .map(|line| {
-                line.iter()
-                    .filter_map(|instruction| match instruction {
-                        RenderInstruction::Character(character) => Some(character),
-                        _ => None,
-                    })
-                    .collect::<String>()
-            })
-            .map(|line| Line::from(line))
+            .split(by_line)
+            .map(instructions_to_string)
+            .map(Line::from)
             .collect();
 
         self.terminal
@@ -91,6 +84,20 @@ impl RendersGameBoard for ConsoleRenderer {
             .draw(|frame| frame.render_widget(Paragraph::new(lines), frame.area()))
             .unwrap();
     }
+}
+
+fn by_line(instruction: &RenderInstruction) -> bool {
+    *instruction == RenderInstruction::NextLine
+}
+
+fn instructions_to_string(line_of_instructions: &[RenderInstruction]) -> String {
+    line_of_instructions
+        .iter()
+        .filter_map(|instruction| match instruction {
+            RenderInstruction::Character(character) => Some(character),
+            _ => None,
+        })
+        .collect::<String>()
 }
 
 struct RandomBlockBuilder;
