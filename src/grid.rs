@@ -84,6 +84,7 @@ impl Block {
         let block_height = match block_type {
             BlockType::Square => 2,
             BlockType::Line => 4,
+            BlockType::T => 2,
         };
 
         Block {
@@ -184,6 +185,21 @@ impl Block {
                     column,
                 },
             ],
+            BlockType::T => vec![
+                Point { row, column },
+                Point {
+                    row,
+                    column: column + 1,
+                },
+                Point {
+                    row,
+                    column: column + 2,
+                },
+                Point {
+                    row: row + 1,
+                    column: column + 1,
+                },
+            ],
         }
     }
 }
@@ -192,6 +208,7 @@ impl Block {
 pub enum BlockType {
     Square,
     Line,
+    T,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

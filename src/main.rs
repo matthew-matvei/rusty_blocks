@@ -103,9 +103,10 @@ fn instructions_to_string(line_of_instructions: &[RenderInstruction]) -> String 
 struct RandomBlockBuilder;
 impl BuildsBlocks for RandomBlockBuilder {
     fn build(&mut self) -> rusty_blocks::Block {
-        let random_number: u8 = rand::random_range(0..2);
+        let random_number: u8 = rand::random_range(0..3);
         match random_number {
             0 => Block::new(4, rusty_blocks::BlockType::Square),
+            1 => Block::new(4, BlockType::T),
             _ => Block::new(4, BlockType::Line),
         }
     }
