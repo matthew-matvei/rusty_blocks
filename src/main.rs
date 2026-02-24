@@ -27,10 +27,7 @@ fn main() -> io::Result<()> {
     while !should_exit {
         game_board.render();
 
-        handle_keyboard_events(
-            || should_exit = true,
-            |direction| game_board.move_block(direction),
-        )?;
+        handle_keyboard_events(|| should_exit = true, &mut game_board)?;
 
         if last_tick.elapsed() >= tick_rate {
             game_board.tick();
@@ -46,7 +43,7 @@ fn main() -> io::Result<()> {
 
 fn handle_keyboard_events(
     mut on_quit: impl FnMut() -> (),
-    mut on_direction_pressed: impl FnMut(Direction) -> (),
+    game_board: &mut GameBoard<'_, ConsoleRenderer, RandomBlockBuilder>,
 ) -> io::Result<()> {
     let timeout = Duration::from_millis(10);
 
@@ -55,9 +52,10 @@ fn handle_keyboard_events(
             if key.kind == KeyEventKind::Press {
                 match key.code {
                     KeyCode::Char('q') => on_quit(),
-                    KeyCode::Left => on_direction_pressed(Direction::Left),
-                    KeyCode::Right => on_direction_pressed(Direction::Right),
-                    KeyCode::Down => on_direction_pressed(Direction::Down),
+                    KeyCode::Left => game_board.move_block(Direction::Left),
+                    KeyCode::Right => game_board.move_block(Direction::Right),
+                    KeyCode::Down => game_board.move_block(Direction::Down),
+                    KeyCode::Char(' ') => game_board.rotate_block(),
                     _ => (),
                 }
             }

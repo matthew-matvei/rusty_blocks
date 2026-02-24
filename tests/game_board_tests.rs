@@ -215,6 +215,27 @@ fn it_clears_rows_of_dead_cells() {
     insta::assert_snapshot!("board after rows cleared", renderer.pop_snapshot());
 }
 
+#[test]
+fn it_can_rotate_the_active_block() {
+    let renderer = TestRenderer::new();
+    let mut block_generator = TestBlockBuilder::with_sequence(vec![BlockType::Line, BlockType::T]);
+    let mut game_board = GameBoard::new(&renderer, &mut block_generator);
+
+    tick_game_board_times(10, &mut game_board);
+    game_board.rotate_block();
+
+    game_board.render();
+
+    insta::assert_snapshot!("line rotated once", renderer.pop_snapshot());
+
+    tick_game_board_times(20, &mut game_board);
+    game_board.rotate_block();
+
+    game_board.render();
+
+    insta::assert_snapshot!("T rotated once", renderer.pop_snapshot());
+}
+
 fn tick_game_board_times<T: RendersGameBoard, V: BuildsBlocks>(
     number_of_times: u8,
     game_board: &mut GameBoard<T, V>,
@@ -282,14 +303,21 @@ impl RendersGameBoard for TestRenderer {
 }
 
 struct TestBlockBuilder {
-    sequence_of_block_types: [BlockType; 2],
+    sequence_of_block_types: Vec<BlockType>,
     position_in_sequence: usize,
 }
 
 impl TestBlockBuilder {
     fn new() -> TestBlockBuilder {
         TestBlockBuilder {
-            sequence_of_block_types: [BlockType::Square, BlockType::Line],
+            sequence_of_block_types: vec![BlockType::Square, BlockType::Line],
+            position_in_sequence: 0,
+        }
+    }
+
+    fn with_sequence(sequence: Vec<BlockType>) -> TestBlockBuilder {
+        TestBlockBuilder {
+            sequence_of_block_types: sequence,
             position_in_sequence: 0,
         }
     }

@@ -77,6 +77,7 @@ impl<'a> IntoIterator for &'a Grid {
 pub struct Block {
     position_in_grid: Point,
     block_type: BlockType,
+    rotation: BlockRotation,
 }
 
 impl Block {
@@ -93,6 +94,7 @@ impl Block {
                 column: starting_column.try_into().unwrap_or_default(),
             },
             block_type,
+            rotation: BlockRotation::Up,
         }
     }
 
@@ -103,6 +105,7 @@ impl Block {
                 column: self.position_in_grid.column,
             },
             block_type: self.block_type,
+            rotation: self.rotation,
         }
     }
 
@@ -113,6 +116,7 @@ impl Block {
                 column: self.position_in_grid.column - 1,
             },
             block_type: self.block_type,
+            rotation: self.rotation,
         }
     }
 
@@ -123,6 +127,20 @@ impl Block {
                 column: self.position_in_grid.column + 1,
             },
             block_type: self.block_type,
+            rotation: self.rotation,
+        }
+    }
+
+    pub(crate) fn rotate(&self) -> Block {
+        Block {
+            position_in_grid: self.position_in_grid,
+            block_type: self.block_type,
+            rotation: match self.rotation {
+                BlockRotation::Up => BlockRotation::Right,
+                BlockRotation::Right => BlockRotation::Down,
+                BlockRotation::Down => BlockRotation::Left,
+                BlockRotation::Left => BlockRotation::Up,
+            },
         }
     }
 
@@ -170,7 +188,17 @@ impl Block {
                     column: column + 1,
                 },
             ],
-            BlockType::Line => vec![
+            BlockType::Line => self.cells_for_line(),
+            BlockType::T => self.cells_for_t(),
+        }
+    }
+
+    fn cells_for_line(self) -> Vec<Point> {
+        let row = self.position_in_grid.row;
+        let column = self.position_in_grid.column;
+
+        match self.rotation {
+            BlockRotation::Up | BlockRotation::Down => vec![
                 Point { row, column },
                 Point {
                     row: row + 1,
@@ -185,7 +213,30 @@ impl Block {
                     column,
                 },
             ],
-            BlockType::T => vec![
+            BlockRotation::Left | BlockRotation::Right => vec![
+                Point { row, column },
+                Point {
+                    row,
+                    column: column + 1,
+                },
+                Point {
+                    row,
+                    column: column + 2,
+                },
+                Point {
+                    row,
+                    column: column + 3,
+                },
+            ],
+        }
+    }
+
+    fn cells_for_t(&self) -> Vec<Point> {
+        let row = self.position_in_grid.row;
+        let column = self.position_in_grid.column;
+
+        match self.rotation {
+            BlockRotation::Up => vec![
                 Point { row, column },
                 Point {
                     row,
@@ -200,6 +251,57 @@ impl Block {
                     column: column + 1,
                 },
             ],
+            BlockRotation::Right => vec![
+                Point {
+                    row,
+                    column: column + 1,
+                },
+                Point {
+                    row: row + 1,
+                    column,
+                },
+                Point {
+                    row: row + 1,
+                    column: column + 1,
+                },
+                Point {
+                    row: row + 2,
+                    column: column + 1,
+                },
+            ],
+            BlockRotation::Down => vec![
+                Point {
+                    row,
+                    column: column + 1,
+                },
+                Point {
+                    row: row + 1,
+                    column,
+                },
+                Point {
+                    row: row + 1,
+                    column: column + 1,
+                },
+                Point {
+                    row: row + 1,
+                    column: column + 2,
+                },
+            ],
+            BlockRotation::Left => vec![
+                Point { row, column },
+                Point {
+                    row: row + 1,
+                    column,
+                },
+                Point {
+                    row: row + 1,
+                    column: column + 1,
+                },
+                Point {
+                    row: row + 2,
+                    column,
+                },
+            ],
         }
     }
 }
@@ -209,6 +311,14 @@ pub enum BlockType {
     Square,
     Line,
     T,
+}
+
+#[derive(Clone, Copy)]
+pub enum BlockRotation {
+    Up,
+    Right,
+    Down,
+    Left,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

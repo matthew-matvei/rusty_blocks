@@ -137,6 +137,10 @@ impl<'a, T: RendersGameBoard, V: BuildsBlocks> GameBoard<'a, T, V> {
             .unwrap_or(block)
         })
     }
+
+    pub fn rotate_block(&mut self) {
+        self.active_block = self.active_block.map(|block| block.rotate());
+    }
 }
 
 #[derive(PartialEq, Eq)]
